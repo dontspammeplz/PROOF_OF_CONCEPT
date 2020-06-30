@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>JS Cookie-fighting bug page #1</title>
+		<script>
+			function updateNameDispBox() {
+				document.getElementById("windowNameDispBox").innerHTML = `
+					<code>document.cookie = ${document.cookie}</code><br>
+					<code>window.name = ${window.name}</code>`;
+			}
+			function regenerateCookieIfPossible() {
+				if (window.name !== "") {
+					document.cookie = `text=${window.name}; expires=Thu, 18 Dec 2030 12:00:00 UTC; path=/`;
+					return true; 
+				}
+				return false;
+			}
+			function regenerateWindowNameIfPossible() {
+				if (document.cookie !== "") {
+					window.name = document.cookie.substr(5);
+				}
+			}
+			window.onload = function() {
+				let windowNameExists = regenerateCookieIfPossible();
+				if (!windowNameExists) {
+					regenerateWindowNameIfPossible();
+				}
+				updateNameDispBox();
+				document.getElementById("okButton").onclick = function() {
+					window.name = document.getElementById("textInput").value;
+					regenerateCookieIfPossible();
+					updateNameDispBox();
+				};
+			};
+		</script>
+	</head>
+	<body>
+		<div id="windowNameDispBox" style="border: 1px solid red; padding: 4px;">
+			<code>window.name is unknown</code>
+		</div>
+		<br>
+		Steps to reproduce bug:
+		<ol>
+			<li>Enter some text to track: <input type="text" id="textInput" placeholder="Testing 12345"><input type="button" value="OK" id="okButton">
+			<li>Clear cookies for this domain and reload</li>
+			<li>Notice that the Javascript <code>window.name</code> persists.</li>
+			<li>This page uses the window.name to re-build cookies even after they are cleared.</li>
+			<li>Navigate to <a href="page_2.html">page #2</a> and notice that the window.name persists and is used to build more cookies.</li>
+		</ol>
+	</body>
+</html>
